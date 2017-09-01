@@ -10,28 +10,29 @@ type Node struct {
 	parent *Node
 }
 
+func BreadthFirst(puzzle Puzzle) []Puzzle {
+	return Search(puzzle, NewStack())
+}
+
 func DephFirst(puzzle Puzzle) []Puzzle {
-	visited := make([]Node, 0)
-	edges := make([]Node, 0)
+	return Search(puzzle, NewQueue())
+}
+
+func Search(puzzle Puzzle, coll Collection) []Puzzle {
+	visited := 0
 	createdNodes := make(map[int]bool)
 
 	// add root node
-	edges = append(edges, Node{Puzzle: puzzle, parent: nil, deph: 0})
+	coll.Push(&Node{Puzzle: puzzle, parent: nil, deph: 0})
 	createdNodes[puzzle.Hash()] = true
 	var endNode *Node
-	i := 0
 	for {
-		i += 1
-		cur := edges[0]
-		edges = edges[1:]
-		if i%1000 == 0 {
-			fmt.Println("edge removed", cur, len(edges))
-		}
+		cur := coll.Pop()
+		visited += 1
 
-		visited = append(visited, cur)
 		// check if current is solved
 		if cur.Puzzle.Solved() {
-			endNode = &cur
+			endNode = cur
 			break
 		}
 
@@ -40,23 +41,69 @@ func DephFirst(puzzle Puzzle) []Puzzle {
 		for _, move := range posMoves {
 			hash := move.Hash()
 			_, ok := createdNodes[hash]
-			//if !contains(move, visited) && !contains(move, edges) {
 			if !ok {
-				edges = append(edges, Node{Puzzle: move.Clone(), deph: cur.deph + 1, parent: &cur})
+				coll.Push(&Node{Puzzle: move, deph: cur.deph + 1, parent: cur})
 				createdNodes[hash] = true
-				//fmt.Println("adding edge")
 			}
 		}
 	}
-	fmt.Println("visited", len(visited), "nodes")
+	fmt.Println("visited", visited, "nodes")
 	// build path using links in nodes
-	solution := make([]Puzzle, 0)
-	for endNode != nil {
-		//fmt.Println("appending", endNode.Puzzle.ToString())
-		solution = append([]Puzzle{endNode.Puzzle}, solution...)
+	solution := make([]Puzzle, endNode.deph)
+	for i := len(solution) - 1; i >= 0; i -= 1 {
+		solution[i] = endNode.Puzzle
 		endNode = endNode.parent
 	}
-	//solution = append(solution, endNode.Puzzle)
 
 	return solution
+}
+
+type Collection interface {
+	Push(*Node)
+	Pop() *Node
+	Size() int
+}
+
+func NewStack() *Stack {
+	return &Stack{data: make([]*Node, 0)}
+}
+
+func NewQueue() *Queue {
+	return &Queue{data: make([]*Node, 0)}
+}
+
+type Stack struct {
+	data []*Node
+}
+
+func (s *Stack) Push(n *Node) {
+	s.data = append(s.data, n)
+}
+
+func (s *Stack) Pop() *Node {
+	val := s.data[len(s.data)-1]
+	s.data = s.data[:len(s.data)-1]
+	return val
+}
+
+func (s *Stack) Size() int {
+	return len(s.data)
+}
+
+type Queue struct {
+	data []*Node
+}
+
+func (q *Queue) Push(n *Node) {
+	q.data = append(q.data, n)
+}
+
+func (q *Queue) Pop() *Node {
+	val := q.data[0]
+	q.data = q.data[1:]
+	return val
+}
+
+func (q *Queue) Size() int {
+	return len(q.data)
 }
