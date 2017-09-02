@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime/pprof"
+	"time"
 )
 
 func main() {
@@ -14,14 +15,42 @@ func main() {
 	}
 	pprof.StartCPUProfile(f)
 
-	problem := puzzle.ReadPuzzle("puzzle.txt")
+	problem := puzzle.ReadPuzzle("extra_puzzle.txt")
 	var solution []puzzle.Puzzle
+	start := time.Now()
 	solution = puzzle.BreadthFirst(problem)
+	fmt.Println("breadth time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
 	solution = puzzle.DephFirst(problem)
+	fmt.Println("depth time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
+	solution = puzzle.BookGreedy(problem)
+	fmt.Println("book greedy time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
+	solution = puzzle.BookAStar(problem)
+	fmt.Println("book a* time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
+	solution = puzzle.MyGreedy(problem)
+	fmt.Println("my greedy time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
+	solution = puzzle.MyAStar(problem)
+	fmt.Println("my a* time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
 	pprof.StopCPUProfile()
 	maxLength := 20
 	if len(solution) > maxLength {
-		fmt.Printf("Solution was %v long reducing to last %v moves", len(solution), maxLength)
+		fmt.Printf("Solution was %v long reducing to last %v moves\n", len(solution), maxLength)
 		solution = solution[len(solution)-maxLength:]
 
 	}

@@ -65,12 +65,10 @@ func (p *Puzzle) Equals(p2 Puzzle) bool {
 }
 
 func (p *Puzzle) Solved() bool {
-	last := 0
-	for i := 0; i < len(p.state); i += 1 {
-		if p.state[i] <= last {
+	for i := 1; i < len(p.state); i += 1 {
+		if p.state[i-1] > p.state[i] {
 			return false
 		}
-		last = p.state[i]
 	}
 	return true
 }

@@ -8,6 +8,7 @@ type Node struct {
 	Puzzle Puzzle
 	deph   int
 	parent *Node
+	rating int
 }
 
 func BreadthFirst(puzzle Puzzle) []Puzzle {
@@ -18,13 +19,42 @@ func DephFirst(puzzle Puzzle) []Puzzle {
 	return Search(puzzle, NewQueue())
 }
 
+func BookGreedy(puzzle Puzzle) []Puzzle {
+	queue := &PriorityQueue{}
+	queue.data = make(map[int][]*Node, 0)
+	queue.evalFunc = bookGreedy
+	return Search(puzzle, queue)
+}
+
+func BookAStar(puzzle Puzzle) []Puzzle {
+	queue := &PriorityQueue{}
+	queue.data = make(map[int][]*Node, 0)
+	queue.evalFunc = bookAStar
+	return Search(puzzle, queue)
+}
+
+func MyAStar(puzzle Puzzle) []Puzzle {
+	queue := &PriorityQueue{}
+	queue.data = make(map[int][]*Node, 0)
+	queue.evalFunc = myAStar
+	return Search(puzzle, queue)
+}
+
+func MyGreedy(puzzle Puzzle) []Puzzle {
+	queue := &PriorityQueue{}
+	queue.data = make(map[int][]*Node, 0)
+	queue.evalFunc = myGreedy
+	return Search(puzzle, queue)
+}
+
 func Search(puzzle Puzzle, coll Collection) []Puzzle {
 	visited := 0
-	createdNodes := make(map[int]bool)
+	createdNodes := make(map[int]*Node)
 
 	// add root node
-	coll.Push(&Node{Puzzle: puzzle, parent: nil, deph: 0})
-	createdNodes[puzzle.Hash()] = true
+	node := &Node{Puzzle: puzzle, parent: nil, deph: 0}
+	coll.Push(node)
+	createdNodes[puzzle.Hash()] = node
 	var endNode *Node
 	for {
 		cur := coll.Pop()
@@ -32,6 +62,7 @@ func Search(puzzle Puzzle, coll Collection) []Puzzle {
 
 		// check if current is solved
 		if cur.Puzzle.Solved() {
+			//fmt.Println("done", cur.Puzzle.ToString(), cur.Puzzle.Solved())
 			endNode = cur
 			break
 		}
@@ -40,14 +71,22 @@ func Search(puzzle Puzzle, coll Collection) []Puzzle {
 		posMoves := cur.Puzzle.GetPossibleMoves()
 		for _, move := range posMoves {
 			hash := move.Hash()
-			_, ok := createdNodes[hash]
+			oldNode, ok := createdNodes[hash]
 			if !ok {
-				coll.Push(&Node{Puzzle: move, deph: cur.deph + 1, parent: cur})
-				createdNodes[hash] = true
+				node := &Node{Puzzle: move, deph: cur.deph + 1, parent: cur}
+				coll.Push(node)
+				createdNodes[hash] = node
+			} else {
+				// check if you are better than current state found
+				if oldNode.deph > cur.deph+1 {
+					//fmt.Println("duplicate found", oldNode.deph, cur.deph+1)
+					oldNode.parent = cur
+					oldNode.deph = cur.deph + 1
+				}
 			}
 		}
 	}
-	fmt.Println("visited", visited, "nodes")
+	fmt.Println("visited", visited, "nodes", "of", len(createdNodes))
 	// build path using links in nodes
 	solution := make([]Puzzle, endNode.deph)
 	for i := len(solution) - 1; i >= 0; i -= 1 {
@@ -58,52 +97,39 @@ func Search(puzzle Puzzle, coll Collection) []Puzzle {
 	return solution
 }
 
-type Collection interface {
-	Push(*Node)
-	Pop() *Node
-	Size() int
+func bookGreedy(n *Node) int {
+	rating := 0
+	for i, val := range n.Puzzle.state {
+		width := abs(i%3 - (val-1)%3)
+		height := abs(i/3 - (val-1)/3)
+		rating += width + height
+	}
+	return rating
 }
 
-func NewStack() *Stack {
-	return &Stack{data: make([]*Node, 0)}
+func bookAStar(n *Node) int {
+	return bookGreedy(n) + n.deph
 }
 
-func NewQueue() *Queue {
-	return &Queue{data: make([]*Node, 0)}
+func myGreedy(n *Node) int {
+	rating := 0
+	state := n.Puzzle.state
+	for i := 1; i < len(state); i += 1 {
+		if state[i-1] > state[i] {
+			rating += 1
+		}
+	}
+	return rating
 }
 
-type Stack struct {
-	data []*Node
+func myAStar(n *Node) int {
+	return myGreedy(n) + n.deph
 }
 
-func (s *Stack) Push(n *Node) {
-	s.data = append(s.data, n)
-}
-
-func (s *Stack) Pop() *Node {
-	val := s.data[len(s.data)-1]
-	s.data = s.data[:len(s.data)-1]
-	return val
-}
-
-func (s *Stack) Size() int {
-	return len(s.data)
-}
-
-type Queue struct {
-	data []*Node
-}
-
-func (q *Queue) Push(n *Node) {
-	q.data = append(q.data, n)
-}
-
-func (q *Queue) Pop() *Node {
-	val := q.data[0]
-	q.data = q.data[1:]
-	return val
-}
-
-func (q *Queue) Size() int {
-	return len(q.data)
+func abs(i int) int {
+	if i < 0 {
+		return i * -1
+	} else {
+		return i
+	}
 }
