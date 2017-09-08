@@ -28,6 +28,16 @@ func main() {
 	fmt.Printf("Solution was %v long\n\n", len(solution))
 
 	start = time.Now()
+	solution = puzzle.DephLimited(problem)
+	fmt.Println("depth limited time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
+	solution = puzzle.IterativeDeepening(problem)
+	fmt.Println("iterative deepening time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
+	start = time.Now()
 	solution = puzzle.BookGreedy(problem)
 	fmt.Println("book greedy time", time.Since(start))
 	fmt.Printf("Solution was %v long\n\n", len(solution))

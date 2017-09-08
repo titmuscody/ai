@@ -12,8 +12,8 @@ type Collection interface {
 	Size() int
 }
 
-func NewStack() *Stack {
-	return &Stack{data: make([]*Node, 0)}
+func NewStack(dephLimit int) *Stack {
+	return &Stack{data: make([]*Node, 0), dephLimit: dephLimit}
 }
 
 func NewQueue() *Queue {
@@ -21,11 +21,14 @@ func NewQueue() *Queue {
 }
 
 type Stack struct {
-	data []*Node
+	data      []*Node
+	dephLimit int
 }
 
 func (s *Stack) Push(n *Node) {
-	s.data = append(s.data, n)
+	if n.deph < s.dephLimit || s.dephLimit == -1 {
+		s.data = append(s.data, n)
+	}
 }
 
 func (s *Stack) Pop() *Node {
@@ -36,6 +39,47 @@ func (s *Stack) Pop() *Node {
 
 func (s *Stack) Size() int {
 	return len(s.data)
+}
+
+type IterativeStack struct {
+	data          map[int][]*Node
+	deepeningStep int
+	count         int
+}
+
+func (s *IterativeStack) Push(n *Node) {
+	s.count += 1
+	step := n.deph / s.deepeningStep
+	if nodes, ok := s.data[step]; ok {
+		nodes = append(nodes, n)
+		s.data[step] = nodes
+	} else {
+		s.data[step] = []*Node{n}
+	}
+}
+
+func (s *IterativeStack) Pop() *Node {
+	s.count -= 1
+	min := 1000000000
+	for k := range s.data {
+		if k < min {
+			min = k
+		}
+	}
+	nodes := s.data[min]
+	val := nodes[len(nodes)-1]
+	if len(nodes) == 1 {
+		delete(s.data, min)
+		return val
+	} else {
+		nodes = nodes[:len(nodes)-1]
+		s.data[min] = nodes
+		return val
+	}
+}
+
+func (s *IterativeStack) Size() int {
+	return s.count
 }
 
 type Queue struct {
@@ -59,7 +103,6 @@ func (q *Queue) Size() int {
 
 // this is used to keep the lowest ranked numbers at the front
 type PriorityQueue struct {
-	//data  []*Node
 	data     map[int][]*Node
 	count    int
 	evalFunc func(*Node) int
@@ -97,14 +140,8 @@ func (q *PriorityQueue) Pop() *Node {
 		return val
 	}
 
-	//delete(q.Nodes, min)
-	//return val
-
-	//q.count -= 1
-	//return q.data[q.count]
 }
 
 func (q *PriorityQueue) Size() int {
 	return q.count
-	//return len(q.Nodes)
 }

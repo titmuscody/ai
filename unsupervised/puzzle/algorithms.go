@@ -12,11 +12,19 @@ type Node struct {
 }
 
 func BreadthFirst(puzzle Puzzle) []Puzzle {
-	return Search(puzzle, NewStack())
+	return Search(puzzle, NewQueue())
 }
 
 func DephFirst(puzzle Puzzle) []Puzzle {
-	return Search(puzzle, NewQueue())
+	return Search(puzzle, NewStack(-1))
+}
+
+func DephLimited(puzzle Puzzle) []Puzzle {
+	return Search(puzzle, NewStack(1000))
+}
+
+func IterativeDeepening(puzzle Puzzle) []Puzzle {
+	return Search(puzzle, &IterativeStack{data: make(map[int][]*Node, 0), deepeningStep: 10})
 }
 
 func BookGreedy(puzzle Puzzle) []Puzzle {
