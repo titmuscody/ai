@@ -11,6 +11,13 @@ type Puzzle struct {
 	empty int
 }
 
+func GetSolvedPuzzle() Puzzle {
+	puzzle := Puzzle{}
+	puzzle.state = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	puzzle.empty = 8
+	return puzzle
+}
+
 func ReadPuzzle(filename string) Puzzle {
 	// initialize puzzle
 	puzzle := Puzzle{}

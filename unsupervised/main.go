@@ -57,8 +57,14 @@ func main() {
 	fmt.Println("my a* time", time.Since(start))
 	fmt.Printf("Solution was %v long\n\n", len(solution))
 
+	start = time.Now()
+	solution = puzzle.BiDirectional(problem)
+	fmt.Println("my bidirectional time", time.Since(start))
+	fmt.Printf("Solution was %v long\n\n", len(solution))
+
 	pprof.StopCPUProfile()
-	maxLength := 20
+
+	maxLength := 25
 	if len(solution) > maxLength {
 		fmt.Printf("Solution was %v long reducing to last %v moves\n", len(solution), maxLength)
 		solution = solution[len(solution)-maxLength:]
