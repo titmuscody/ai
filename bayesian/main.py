@@ -17,14 +17,14 @@ def get_stats(filename):
 				stats[word] = stats.get(word, 0) + 1
 	return stats
 
-def get_words_in_docs(text_files):
+def get_words_in_docs(text_files, word_limit=1000):
 	out = []
 	for filename in text_files:
 		with open(filename) as f:
 			words = []
 			for line in f:
 				words.extend(filter_lines(line))
-		out.extend(words[:1000])
+		out.extend(words[:word_limit])
 
 	return out
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 		# get vocab using list of filenames
 		tot_vocab = set(get_words_in_docs([x[0] for x in testing_books]))
 
-		test_words = get_words_in_docs([test_book[0]])
+		test_words = get_words_in_docs([test_book[0]], word_limit=5000)
 
 		print('test book', test_book[0])
 		cur_best = -1000000
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
 
 			# get the word seq of books written by the same author
-			words = get_words_in_docs(auth_books)
+			words = get_words_in_docs(auth_books, word_limit=900)
 			auth_vocab = set(words)
 			#n = len(words)
 
